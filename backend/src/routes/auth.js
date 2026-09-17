@@ -31,8 +31,10 @@ router.post(
 
     if (countError) throw new HttpError(500, countError.message);
 
+    const userCount = count || 0;
+
     // El primer usuario se crea sin token. Los siguientes requieren admin.
-    if (count > 0) {
+    if (userCount > 0) {
       if (!req.headers.authorization) {
         throw new HttpError(401, "Solo un administrador puede registrar más usuarios");
       }
@@ -45,7 +47,7 @@ router.post(
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const role = count === 0 ? "admin" : req.body.role === "staff" ? "staff" : "admin";
+    const role = userCount === 0 ? "admin" : req.body.role === "staff" ? "staff" : "admin";
 
     const { data, error } = await supabase
       .from("admin_users")
