@@ -1,0 +1,10 @@
+{
+  "name": "judgeme",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JudgeMe — FCA UACH",
+  "scripts": {
+    "dev": "npm run dev --prefix backend",
+    "start": "npm start --prefix backend"
+  }
+}
