@@ -48,9 +48,20 @@ create table if not exists reports (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists report_evidences (
+  id uuid primary key default gen_random_uuid(),
+  report_id uuid not null references reports (id) on delete cascade,
+  file_name text not null,
+  file_type text not null,
+  file_size integer not null,
+  file_path text not null,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists reports_teacher_id_idx on reports (teacher_id);
 create index if not exists reports_status_idx on reports (status);
 create index if not exists teachers_program_code_idx on teachers (program_code);
+create index if not exists report_evidences_report_id_idx on report_evidences (report_id);
 
 -- El backend usa la service_role key y no pasa por RLS.
 -- Aun así se deja RLS activo para bloquear acceso anónimo desde el cliente de Supabase.

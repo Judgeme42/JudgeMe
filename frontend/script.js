@@ -3,6 +3,8 @@ const API_URL = "http://localhost:3001";
 // DOM Elements
 const authScreen = document.getElementById("auth-screen");
 const mainContent = document.getElementById("main-content");
+const loginScreen = document.getElementById("login-screen");
+const registerScreen = document.getElementById("register-screen");
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
 const logoutBtn = document.getElementById("logout-btn");
@@ -23,22 +25,18 @@ let selectedTeacher = "";
 let currentStudent = null;
 let authToken = null;
 
-// Auth tabs
-const authTabs = document.querySelectorAll(".auth-tab");
-authTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    authTabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
+// Switch between login and register screens
+const showRegisterBtn = document.getElementById("show-register");
+const showLoginBtn = document.getElementById("show-login");
 
-    const tabName = tab.dataset.tab;
-    if (tabName === "login") {
-      loginForm.hidden = false;
-      registerForm.hidden = true;
-    } else {
-      loginForm.hidden = true;
-      registerForm.hidden = false;
-    }
-  });
+showRegisterBtn.addEventListener("click", () => {
+  loginScreen.hidden = true;
+  registerScreen.hidden = false;
+});
+
+showLoginBtn.addEventListener("click", () => {
+  registerScreen.hidden = true;
+  loginScreen.hidden = false;
 });
 
 // Login
@@ -90,7 +88,6 @@ registerForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         studentNumber: formData.get("studentNumber"),
         email: formData.get("email"),
-        fullName: formData.get("fullName"),
         password: formData.get("password"),
       }),
     });
@@ -232,6 +229,19 @@ function openModal(teacherId) {
 
   selectedTeacher = teacherId;
   modalTeacher.textContent = teacher.name;
+
+  // Agregar teacherId al formulario
+  const teacherIdInput = document.createElement("input");
+  teacherIdInput.type = "hidden";
+  teacherIdInput.name = "teacherId";
+  teacherIdInput.value = teacherId;
+
+  // Eliminar input anterior si existe
+  const existingInput = form.querySelector('input[name="teacherId"]');
+  if (existingInput) existingInput.remove();
+
+  form.appendChild(teacherIdInput);
+
   form.reset();
   modal.hidden = false;
   document.body.style.overflow = "hidden";
@@ -268,18 +278,29 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
 
+  // Validar que haya al menos una evidencia
+  const files = formData.getAll("evidences");
+  if (files.length === 0 || (files.length === 1 && files[0].size === 0)) {
+    showToast("Debes adjuntar al menos una evidencia (foto, audio, video o documento)");
+    return;
+  }
+
+  // Validar tamaño máximo de archivos
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  for (const file of files) {
+    if (file.size > maxSize) {
+      showToast(`El archivo ${file.name} excede el tamaño máximo de 10MB`);
+      return;
+    }
+  }
+
   try {
     const response = await fetch(`${API_URL}/api/reports`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({
-        teacherId: selectedTeacher,
-        motive: formData.get("motivo"),
-        description: formData.get("descripcion"),
-      }),
+      body: formData,
     });
 
     const data = await response.json();
@@ -289,7 +310,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     closeModal();
-    showToast("Reporte enviado exitosamente. Será revisado por la administración.");
+    showToast("Reporte enviado exitosamente con evidencias. Será revisado por la administración.");
   } catch (error) {
     showToast(error.message);
   }

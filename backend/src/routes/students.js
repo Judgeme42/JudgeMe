@@ -11,7 +11,7 @@ const SALT_ROUNDS = 12;
 router.post(
   "/register",
   asyncHandler(async (req, res) => {
-    const missing = requireFields(req.body, ["studentNumber", "email", "password", "fullName"]);
+    const missing = requireFields(req.body, ["studentNumber", "email", "password"]);
     if (missing.length) {
       throw new HttpError(400, `Faltan campos: ${missing.join(", ")}`);
     }
@@ -19,7 +19,7 @@ router.post(
     const studentNumber = String(req.body.studentNumber).trim();
     const email = String(req.body.email).trim().toLowerCase();
     const password = String(req.body.password);
-    const fullName = String(req.body.fullName).trim();
+    const fullName = req.body.fullName ? String(req.body.fullName).trim() : studentNumber; // Usar matrícula como nombre por defecto
 
     // Validaciones
     if (!/^[A-Z0-9]{6,10}$/i.test(studentNumber)) {

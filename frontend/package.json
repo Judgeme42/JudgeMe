@@ -1,0 +1,10 @@
+{
+  "name": "judgeme-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frontend de JudgeMe — FCA UACH",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "start": "python -m http.server 8000"
+  }
+}
