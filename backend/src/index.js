@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
+const studentRoutes = require("./routes/students");
 const teacherRoutes = require("./routes/teachers");
 const reportRoutes = require("./routes/reports");
 const { errorHandler, notFound } = require("./middleware/error");
@@ -27,6 +28,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/reports", reportRoutes);
 

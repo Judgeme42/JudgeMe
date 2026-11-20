@@ -25,12 +25,24 @@ create table if not exists teachers (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists students (
+  id uuid primary key default gen_random_uuid(),
+  student_number text not null unique,
+  email text not null unique,
+  password_hash text not null,
+  full_name text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists reports (
   id uuid primary key default gen_random_uuid(),
   teacher_id uuid not null references teachers (id) on delete restrict,
+  student_id uuid references students (id) on delete set null,
   motive text not null,
   description text not null,
-  is_anonymous boolean not null default false,
+  is_anonymous boolean not null default true,
   status text not null default 'pending' check (status in ('pending', 'in_review', 'resolved', 'dismissed')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -44,4 +56,5 @@ create index if not exists teachers_program_code_idx on teachers (program_code);
 -- Aun así se deja RLS activo para bloquear acceso anónimo desde el cliente de Supabase.
 alter table admin_users enable row level security;
 alter table teachers enable row level security;
+alter table students enable row level security;
 alter table reports enable row level security;

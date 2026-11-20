@@ -1,89 +1,12 @@
-const teachers = [
-  {
-    name: "Mtra. Laura Espinoza Ríos",
-    program: "CP",
-    programLabel: "Contador Público",
-    subject: "Contabilidad intermedia",
-    bio: "Coordina prácticas de auditoría y estados financieros con enfoque en ética profesional.",
-  },
-  {
-    name: "Dr. Héctor Salinas Corral",
-    program: "LAE",
-    programLabel: "Administración de Empresas",
-    subject: "Dirección estratégica",
-    bio: "Acompaña proyectos de planeación y liderazgo en organizaciones locales.",
-  },
-  {
-    name: "Mtro. Iván Terrazas Núñez",
-    program: "LAF",
-    programLabel: "Administración Financiera",
-    subject: "Mercados de capitales",
-    bio: "Imparte análisis de riesgo e inversión con casos del norte de México.",
-  },
-  {
-    name: "Dra. Camila Ortega Prado",
-    program: "LIN",
-    programLabel: "Inteligencia de Negocios",
-    subject: "Visualización de datos",
-    bio: "Integra tableros y analítica para la toma de decisiones en pymes.",
-  },
-  {
-    name: "Mtra. Sofía Villalobos Mora",
-    program: "LNI",
-    programLabel: "Negocios Internacionales",
-    subject: "Comercio exterior",
-    bio: "Trabaja tratados comerciales y logística transfronteriza.",
-  },
-  {
-    name: "Mtro. Diego Armendáriz Peña",
-    program: "LAGP",
-    programLabel: "Administración y Gestión Pública",
-    subject: "Políticas públicas",
-    bio: "Enfoca la gestión municipal y la evaluación de programas sociales.",
-  },
-  {
-    name: "Mtra. Paola Chávez Luján",
-    program: "CP",
-    programLabel: "Contador Público",
-    subject: "Impuestos I",
-    bio: "Explica ISR e IVA con talleres de declaración y cumplimiento fiscal.",
-  },
-  {
-    name: "Dr. Ernesto Quiñones Beltrán",
-    program: "LAE",
-    programLabel: "Administración de Empresas",
-    subject: "Comportamiento organizacional",
-    bio: "Facilita dinámicas de equipos, clima laboral y cultura organizacional.",
-  },
-  {
-    name: "Mtra. Regina Acosta Fierro",
-    program: "LAF",
-    programLabel: "Administración Financiera",
-    subject: "Finanzas corporativas",
-    bio: "Aplica valuación de empresas y estructura de capital en proyectos reales.",
-  },
-  {
-    name: "Mtro. Bruno Maldonado Sáenz",
-    program: "LIN",
-    programLabel: "Inteligencia de Negocios",
-    subject: "Minería de datos",
-    bio: "Introduce SQL, Python y modelos descriptivos para analítica de negocios.",
-  },
-  {
-    name: "Dra. Natalia Herrera Campos",
-    program: "LNI",
-    programLabel: "Negocios Internacionales",
-    subject: "Negociación intercultural",
-    bio: "Prepara simulaciones de negociación con socios de EUA y Asia.",
-  },
-  {
-    name: "Mtro. Saúl Montes Carreón",
-    program: "LAGP",
-    programLabel: "Administración y Gestión Pública",
-    subject: "Transparencia y rendición de cuentas",
-    bio: "Revisa marcos de transparencia y acceso a la información pública.",
-  },
-];
+const API_URL = "http://localhost:3001";
+
+// DOM Elements
+const authScreen = document.getElementById("auth-screen");
+const mainContent = document.getElementById("main-content");
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+const logoutBtn = document.getElementById("logout-btn");
+const userInfo = document.getElementById("user-info");
 
 const grid = document.getElementById("teacher-grid");
 const search = document.getElementById("search");
@@ -95,7 +18,155 @@ const modalTeacher = document.getElementById("modal-teacher");
 const form = document.getElementById("report-form");
 const toast = document.getElementById("toast");
 
+let teachers = [];
 let selectedTeacher = "";
+let currentStudent = null;
+let authToken = null;
+
+// Auth tabs
+const authTabs = document.querySelectorAll(".auth-tab");
+authTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    authTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const tabName = tab.dataset.tab;
+    if (tabName === "login") {
+      loginForm.hidden = false;
+      registerForm.hidden = true;
+    } else {
+      loginForm.hidden = true;
+      registerForm.hidden = false;
+    }
+  });
+});
+
+// Login
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(loginForm);
+
+  try {
+    const response = await fetch(`${API_URL}/api/students/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        studentNumber: formData.get("studentNumber"),
+        password: formData.get("password"),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Error al iniciar sesión");
+    }
+
+    currentStudent = data.student;
+    authToken = data.token;
+    localStorage.setItem("studentToken", authToken);
+    localStorage.setItem("studentData", JSON.stringify(currentStudent));
+
+    showMainContent();
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+// Register
+registerForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(registerForm);
+
+  if (formData.get("password") !== formData.get("confirmPassword")) {
+    showToast("Las contraseñas no coinciden");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/students/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        studentNumber: formData.get("studentNumber"),
+        email: formData.get("email"),
+        fullName: formData.get("fullName"),
+        password: formData.get("password"),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Error al registrarse");
+    }
+
+    showToast("Cuenta creada exitosamente. Ahora puedes iniciar sesión.");
+
+    // Cambiar a tab de login
+    authTabs[0].click();
+    loginForm.elements.studentNumber.value = formData.get("studentNumber");
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+// Logout
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("studentToken");
+  localStorage.removeItem("studentData");
+  currentStudent = null;
+  authToken = null;
+  location.reload();
+});
+
+// Check if user is already logged in
+function checkAuth() {
+  const token = localStorage.getItem("studentToken");
+  const studentData = localStorage.getItem("studentData");
+
+  if (token && studentData) {
+    authToken = token;
+    currentStudent = JSON.parse(studentData);
+    showMainContent();
+  }
+}
+
+// Show main content after auth
+async function showMainContent() {
+  authScreen.hidden = true;
+  mainContent.hidden = false;
+
+  userInfo.textContent = `${currentStudent.fullName} (${currentStudent.studentNumber})`;
+
+  await loadTeachers();
+}
+
+// Load teachers from API
+async function loadTeachers() {
+  try {
+    const response = await fetch(`${API_URL}/api/teachers`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Error al cargar maestros");
+    }
+
+    teachers = data.teachers.map((t) => ({
+      id: t.id,
+      name: t.fullName,
+      program: t.programCode,
+      programLabel: t.programLabel,
+      subject: t.subject,
+      bio: t.bio || "Docente de la FCA UACH",
+    }));
+
+    document.getElementById("teacher-count").textContent = teachers.length;
+    render();
+  } catch (error) {
+    showToast(`Error: ${error.message}`);
+  }
+}
 
 function initials(name) {
   return name
@@ -113,8 +184,18 @@ function render() {
   const program = programFilter.value;
   const filtered = teachers.filter((teacher) => {
     const matchesProgram = program === "todos" || teacher.program === program;
+
+    if (!matchesProgram) return false;
+
+    if (!query) return true;
+
+    // Búsqueda flexible: dividir la consulta en palabras y verificar que cada palabra aparezca en cualquier parte del nombre
+    const queryWords = query.split(/\s+/).filter((w) => w.length > 0);
     const haystack = `${teacher.name} ${teacher.subject} ${teacher.programLabel}`.toLowerCase();
-    return matchesProgram && haystack.includes(query);
+    const nameWords = teacher.name.toLowerCase().split(/\s+/);
+
+    // Cada palabra de la consulta debe aparecer en el haystack (nombre completo, materia o programa)
+    return queryWords.every((word) => haystack.includes(word));
   });
 
   grid.innerHTML = filtered
@@ -133,7 +214,7 @@ function render() {
           <span class="tag">${teacher.programLabel}</span>
         </div>
         <p>${teacher.bio}</p>
-        <button class="btn btn-primary" type="button" data-teacher="${teacher.name}">
+        <button class="btn btn-primary" type="button" data-teacher="${teacher.id}">
           Levantar reporte
         </button>
       </article>
@@ -145,9 +226,12 @@ function render() {
   emptyState.hidden = filtered.length > 0;
 }
 
-function openModal(name) {
-  selectedTeacher = name;
-  modalTeacher.textContent = name;
+function openModal(teacherId) {
+  const teacher = teachers.find((t) => t.id === teacherId);
+  if (!teacher) return;
+
+  selectedTeacher = teacherId;
+  modalTeacher.textContent = teacher.name;
   form.reset();
   modal.hidden = false;
   document.body.style.overflow = "hidden";
@@ -180,17 +264,39 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modal.hidden) closeModal();
 });
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const data = new FormData(form);
-  const anonymous = data.get("anonimo") ? "anónimo" : "identificado (simulado)";
-  closeModal();
-  showToast(
-    `Reporte de prueba sobre ${selectedTeacher} (${anonymous}). En el prototipo no se guarda nada.`
-  );
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch(`${API_URL}/api/reports`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        teacherId: selectedTeacher,
+        motive: formData.get("motivo"),
+        description: formData.get("descripcion"),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Error al enviar reporte");
+    }
+
+    closeModal();
+    showToast("Reporte enviado exitosamente. Será revisado por la administración.");
+  } catch (error) {
+    showToast(error.message);
+  }
 });
 
 search.addEventListener("input", render);
 programFilter.addEventListener("change", render);
 
-render();
+// Initialize
+checkAuth();

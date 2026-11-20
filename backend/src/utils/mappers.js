@@ -31,6 +31,7 @@ function mapReport(row) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     teacher: row.teachers ? mapTeacher(row.teachers) : undefined,
+    // No incluir student_id ni información del estudiante para mantener anonimato
   };
 }
 

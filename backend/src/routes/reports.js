@@ -2,6 +2,7 @@ const express = require("express");
 const { getSupabase } = require("../config/supabase");
 const { HttpError, asyncHandler } = require("../middleware/error");
 const { requireAuth } = require("../middleware/auth");
+const { requireStudentAuth } = require("../middleware/studentAuth");
 const { requireFields, mapReport } = require("../utils/mappers");
 
 const router = express.Router();
@@ -9,6 +10,7 @@ const ALLOWED_STATUS = new Set(["pending", "in_review", "resolved", "dismissed"]
 
 router.post(
   "/",
+  requireStudentAuth,
   asyncHandler(async (req, res) => {
     const missing = requireFields(req.body, ["teacherId", "motive", "description"]);
     if (missing.length) {
@@ -32,13 +34,16 @@ router.post(
       throw new HttpError(404, "Maestro no encontrado");
     }
 
+    // Crear reporte anónimo - no guardar información del estudiante en el reporte
+    // Solo guardar student_id para uso interno, pero nunca exponerlo al admin
     const { data, error } = await supabase
       .from("reports")
       .insert({
         teacher_id: teacher.id,
+        student_id: req.student.id, // Guardado para control interno
         motive: String(req.body.motive).trim(),
         description,
-        is_anonymous: Boolean(req.body.isAnonymous),
+        is_anonymous: true, // Siempre anónimo
       })
       .select("*")
       .single();

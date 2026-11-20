@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FCA UACH · Reportes académicos (prototipo)</title>
+    <title>FCA UACH · Reportes académicos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,170 +13,240 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="prototype-banner">
-      Prototipo visual · la información es ficticia y los reportes no se envían
-    </div>
-
-    <header class="site-header">
-      <div class="container header-inner">
-        <a class="brand" href="#">
-          <span class="brand-mark" aria-hidden="true">
+    <!-- Pantalla de autenticación -->
+    <div id="auth-screen" class="auth-screen">
+      <div class="auth-container">
+        <div class="auth-header">
+          <span class="brand-mark auth-brand-mark" aria-hidden="true">
             <span>FCA</span>
           </span>
-          <span class="brand-text">
-            <strong>Facultad de Contaduría y Administración</strong>
-            <small>Universidad Autónoma de Chihuahua</small>
-          </span>
-        </a>
-        <nav class="nav">
-          <a href="#directorio">Directorio</a>
-          <a href="#como-funciona">Cómo funciona</a>
-        </nav>
-      </div>
-    </header>
-
-    <main>
-      <section class="hero">
-        <div class="container hero-grid">
-          <div>
-            <p class="eyebrow">Comunidad estudiantil · Campus II</p>
-            <h1>Directorio de docentes y canal de reportes</h1>
-            <p class="lead">
-              Consulta al profesorado de la FCA y, si lo necesitas, levanta un
-              reporte o queja de forma sencilla. Esta versión es solo una
-              maqueta para visualizar la idea.
-            </p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="#directorio">Ver maestros</a>
-              <a class="btn btn-ghost" href="#como-funciona">Cómo reportar</a>
-            </div>
-          </div>
-          <aside class="hero-card">
-            <p class="hero-stat"><span>12</span> docentes de ejemplo</p>
-            <p class="hero-stat"><span>6</span> programas educativos</p>
-            <p class="hero-note">
-              Lema institucional: <em>Investigación y Docencia con Sentido Social</em>
-            </p>
-          </aside>
+          <h1>FCA UACH</h1>
+          <p>Facultad de Contaduría y Administración</p>
         </div>
-      </section>
 
-      <section class="section" id="directorio">
-        <div class="container">
-          <div class="section-head">
-            <h2>Directorio de maestros</h2>
-            <p>Datos de demostración. Filtra por programa o busca por nombre.</p>
-          </div>
-
-          <div class="toolbar">
-            <label class="search">
-              <span class="sr-only">Buscar maestro</span>
-              <input
-                id="search"
-                type="search"
-                placeholder="Buscar por nombre o materia…"
-                autocomplete="off"
-              />
-            </label>
-            <label class="select">
-              <span class="sr-only">Filtrar por programa</span>
-              <select id="program-filter">
-                <option value="todos">Todos los programas</option>
-                <option value="CP">Contador Público</option>
-                <option value="LAE">Administración de Empresas</option>
-                <option value="LAF">Administración Financiera</option>
-                <option value="LIN">Inteligencia de Negocios</option>
-                <option value="LNI">Negocios Internacionales</option>
-                <option value="LAGP">Administración y Gestión Pública</option>
-              </select>
-            </label>
-          </div>
-
-          <p class="results-meta" id="results-meta"></p>
-          <div class="cards" id="teacher-grid"></div>
-          <p class="empty" id="empty-state" hidden>
-            No hay coincidencias con tu búsqueda.
-          </p>
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">Iniciar Sesión</button>
+          <button class="auth-tab" data-tab="register">Registrarse</button>
         </div>
-      </section>
 
-      <section class="section alt" id="como-funciona">
-        <div class="container steps">
-          <h2>Cómo levantar un reporte</h2>
-          <ol>
-            <li>
-              <strong>Elige al docente</strong>
-              En la tarjeta correspondiente pulsa <em>Levantar reporte</em>.
-            </li>
-            <li>
-              <strong>Describe el motivo</strong>
-              Selecciona una categoría y explica lo ocurrido con claridad.
-            </li>
-            <li>
-              <strong>Decide si es anónimo</strong>
-              En esta maqueta el envío solo muestra una confirmación local.
-            </li>
-          </ol>
-        </div>
-      </section>
-    </main>
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form">
+          <h2>Iniciar Sesión</h2>
+          <p class="auth-description">Ingresa con tu número de matrícula y contraseña</p>
 
-    <footer class="site-footer">
-      <div class="container footer-inner">
-        <p>
-          Facultad de Contaduría y Administración · UACH<br />
-          Circuito Universitario Campus II, Chihuahua, Chih.
-        </p>
-        <p class="muted">Prototipo académico · sin backend ni autenticación</p>
-      </div>
-    </footer>
-
-    <div class="modal" id="report-modal" hidden>
-      <div class="modal-backdrop" data-close></div>
-      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <button class="icon-close" type="button" data-close aria-label="Cerrar">
-          ×
-        </button>
-        <p class="eyebrow">Nuevo reporte</p>
-        <h3 id="modal-title">Levantar reporte</h3>
-        <p class="modal-teacher" id="modal-teacher"></p>
-
-        <form id="report-form">
           <label>
-            Motivo
-            <select name="motivo" required>
-              <option value="">Selecciona un motivo</option>
-              <option>Faltas de asistencia o puntualidad</option>
-              <option>Evaluación o calificaciones</option>
-              <option>Trato inadecuado o falta de respeto</option>
-              <option>Incumplimiento del programa</option>
-              <option>Acoso o discriminación</option>
-              <option>Otro</option>
-            </select>
+            Número de Matrícula
+            <input type="text" name="studentNumber" required placeholder="Ej: 2024001" />
           </label>
+
           <label>
-            Descripción
-            <textarea
-              name="descripcion"
-              rows="5"
-              required
-              minlength="20"
-              placeholder="Describe los hechos con fecha, materia y contexto. Información de ejemplo."
-            ></textarea>
+            Contraseña
+            <input type="password" name="password" required placeholder="Tu contraseña" />
           </label>
-          <label class="check">
-            <input type="checkbox" name="anonimo" />
-            Enviar de forma anónima
+
+          <button type="submit" class="btn btn-primary btn-full">Iniciar Sesión</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form" hidden>
+          <h2>Registrarse</h2>
+          <p class="auth-description">Crea tu cuenta como estudiante</p>
+
+          <label>
+            Número de Matrícula
+            <input type="text" name="studentNumber" required placeholder="Ej: 2024001" />
           </label>
-          <div class="form-actions">
-            <button class="btn btn-ghost" type="button" data-close>Cancelar</button>
-            <button class="btn btn-primary" type="submit">Enviar reporte</button>
-          </div>
+
+          <label>
+            Correo Institucional
+            <input type="email" name="email" required placeholder="tu.correo@uach.mx" />
+          </label>
+
+          <label>
+            Nombre Completo
+            <input type="text" name="fullName" required placeholder="Tu nombre completo" />
+          </label>
+
+          <label>
+            Contraseña
+            <input type="password" name="password" required placeholder="Mínimo 8 caracteres" />
+          </label>
+
+          <label>
+            Confirmar Contraseña
+            <input type="password" name="confirmPassword" required placeholder="Repite tu contraseña" />
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-full">Crear Cuenta</button>
         </form>
       </div>
     </div>
 
-    <div class="toast" id="toast" hidden role="status"></div>
+    <!-- Main Content (oculto hasta login) -->
+    <div id="main-content" hidden>
+      <div class="prototype-banner">
+        Sistema de reportes · FCA UACH
+      </div>
+
+      <header class="site-header">
+        <div class="container header-inner">
+          <a class="brand" href="#">
+            <span class="brand-mark" aria-hidden="true">
+              <span>FCA</span>
+            </span>
+            <span class="brand-text">
+              <strong>Facultad de Contaduría y Administración</strong>
+              <small>Universidad Autónoma de Chihuahua</small>
+            </span>
+          </a>
+          <nav class="nav">
+            <a href="#directorio">Directorio</a>
+            <a href="#como-funciona">Cómo funciona</a>
+            <span class="user-info" id="user-info"></span>
+            <button class="btn btn-ghost btn-small" id="logout-btn">Cerrar Sesión</button>
+          </nav>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="container hero-grid">
+            <div>
+              <p class="eyebrow">Comunidad estudiantil · Campus II</p>
+              <h1>Directorio de docentes y canal de reportes</h1>
+              <p class="lead">
+                Consulta al profesorado de la FCA y, si lo necesitas, levanta un
+                reporte o queja de forma anónima y sencilla.
+              </p>
+              <div class="hero-actions">
+                <a class="btn btn-primary" href="#directorio">Ver maestros</a>
+                <a class="btn btn-ghost" href="#como-funciona">Cómo reportar</a>
+              </div>
+            </div>
+            <aside class="hero-card">
+              <p class="hero-stat"><span id="teacher-count">...</span> docentes</p>
+              <p class="hero-stat"><span>6</span> programas educativos</p>
+              <p class="hero-note">
+                Lema institucional: <em>Investigación y Docencia con Sentido Social</em>
+              </p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="section" id="directorio">
+          <div class="container">
+            <div class="section-head">
+              <h2>Directorio de maestros</h2>
+              <p>Filtra por programa o busca por nombre.</p>
+            </div>
+
+            <div class="toolbar">
+              <label class="search">
+                <span class="sr-only">Buscar maestro</span>
+                <input
+                  id="search"
+                  type="search"
+                  placeholder="Buscar por nombre o materia…"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="select">
+                <span class="sr-only">Filtrar por programa</span>
+                <select id="program-filter">
+                  <option value="todos">Todos los programas</option>
+                  <option value="CP">Contador Público</option>
+                  <option value="LAE">Administración de Empresas</option>
+                  <option value="LAF">Administración Financiera</option>
+                  <option value="LIN">Inteligencia de Negocios</option>
+                  <option value="LNI">Negocios Internacionales</option>
+                  <option value="LAGP">Administración y Gestión Pública</option>
+                  <option value="GEN">General</option>
+                </select>
+              </label>
+            </div>
+
+            <p class="results-meta" id="results-meta"></p>
+            <div class="cards" id="teacher-grid"></div>
+            <p class="empty" id="empty-state" hidden>
+              No hay coincidencias con tu búsqueda.
+            </p>
+          </div>
+        </section>
+
+        <section class="section alt" id="como-funciona">
+          <div class="container steps">
+            <h2>Cómo levantar un reporte</h2>
+            <ol>
+              <li>
+                <strong>Elige al docente</strong>
+                En la tarjeta correspondiente pulsa <em>Levantar reporte</em>.
+              </li>
+              <li>
+                <strong>Describe el motivo</strong>
+                Selecciona una categoría y explica lo ocurrido con claridad.
+              </li>
+              <li>
+                <strong>Reporta de forma anónima</strong>
+                Tu identidad nunca será revelada al administrador.
+              </li>
+            </ol>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="container footer-inner">
+          <p>
+            Facultad de Contaduría y Administración · UACH<br />
+            Circuito Universitario Campus II, Chihuahua, Chih.
+          </p>
+          <p class="muted">Sistema de reportes · Canales de atención</p>
+        </div>
+      </footer>
+
+      <div class="modal" id="report-modal" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <button class="icon-close" type="button" data-close aria-label="Cerrar">
+            ×
+          </button>
+          <p class="eyebrow">Nuevo reporte</p>
+          <h3 id="modal-title">Levantar reporte</h3>
+          <p class="modal-teacher" id="modal-teacher"></p>
+
+          <form id="report-form">
+            <label>
+              Motivo
+              <select name="motivo" required>
+                <option value="">Selecciona un motivo</option>
+                <option>Faltas de asistencia o puntualidad</option>
+                <option>Evaluación o calificaciones</option>
+                <option>Trato inadecuado o falta de respeto</option>
+                <option>Incumplimiento del programa</option>
+                <option>Acoso o discriminación</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <label>
+              Descripción
+              <textarea
+                name="descripcion"
+                rows="5"
+                required
+                minlength="20"
+                placeholder="Describe los hechos con fecha, materia y contexto."
+              ></textarea>
+            </label>
+            <div class="form-actions">
+              <button class="btn btn-ghost" type="button" data-close>Cancelar</button>
+              <button class="btn btn-primary" type="submit">Enviar reporte</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" hidden role="status"></div>
+    </div>
 
     <script src="script.js"></script>
   </body>
