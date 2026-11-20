@@ -14,7 +14,7 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-const port = Number(process.env.PORT) || 3001;
+const port = Number(process.env.BACKEND_PORT || process.env.PORT) || 3001;
 
 app.use(cors());
 app.use(express.json());
