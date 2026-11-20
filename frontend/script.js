@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3001";
+const API_URL = "";
 
 // DOM Elements
 const authScreen = document.getElementById("auth-screen");
