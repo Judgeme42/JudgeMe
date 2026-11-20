@@ -1,4 +1,4 @@
-const API_URL = "";
+const API_URL = window.JUDGEME_API_URL || "";
 
 // DOM Elements
 const authScreen = document.getElementById("auth-screen");
