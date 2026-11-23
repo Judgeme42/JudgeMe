@@ -12,6 +12,8 @@ let grid, search, programFilter, resultsMeta, emptyState, modal, modalTeacher, f
 let teachers = [];
 let selectedTeacher = "";
 let currentUser = null;
+let displayedTeachers = 6; // Mostrar 6 maestros inicialmente
+let filteredTeachers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   authScreen = document.getElementById("auth-screen");
@@ -145,6 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize
   checkAuth();
+
+  // Agregar scroll listener para cargar más maestros
+  window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loadMoreTeachers();
+    }
+  });
 });
 
 // Verificar autenticación al cargar
@@ -226,7 +235,12 @@ function render() {
     return queryWords.every((word) => haystack.includes(word));
   });
 
-  grid.innerHTML = filtered
+  filteredTeachers = filtered;
+
+  // Mostrar solo los primeros N maestros
+  const teachersToShow = filtered.slice(0, displayedTeachers);
+
+  grid.innerHTML = teachersToShow
     .map(
       (teacher) => `
       <article class="card">
@@ -250,7 +264,7 @@ function render() {
     )
     .join("");
 
-  resultsMeta.textContent = `${filtered.length} maestro${filtered.length === 1 ? "" : "s"} en el directorio`;
+  resultsMeta.textContent = `${filtered.length} maestro${filtered.length === 1 ? "" : "s"} en el directorio (${teachersToShow.length} mostrados)`;
   emptyState.hidden = filtered.length > 0;
 }
 
@@ -287,4 +301,11 @@ function showToast(message) {
   window.setTimeout(() => {
     toast.hidden = false;
   }, 3200);
+}
+
+function loadMoreTeachers() {
+  if (displayedTeachers < filteredTeachers.length) {
+    displayedTeachers += 6;
+    render();
+  }
 }
