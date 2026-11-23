@@ -309,7 +309,7 @@ form.addEventListener("submit", async (event) => {
     // Verificar límite de reportes (Edge Function)
     const { data: { session } } = await supabase.auth.getSession();
     const limitCheck = await fetch(
-      `${window.SUPABASE_URL}/functions/v1/check-report-limit`,
+      `${window.SUPABASE_URL}/functions/v1/rapid-handler`,
       {
         method: "POST",
         headers: {
