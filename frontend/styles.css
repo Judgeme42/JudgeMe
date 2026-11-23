@@ -899,3 +899,219 @@ body {
   padding: 2rem;
   color: var(--muted);
 }
+
+/* Admin Panel Styles */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--blanco);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.stat-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--negro);
+  font-size: 1rem;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--rojo);
+  margin: 0;
+}
+
+.admin-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-filters .search {
+  flex: 1;
+  min-width: 300px;
+}
+
+.admin-filters .select {
+  min-width: 200px;
+}
+
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.report-card {
+  background: var(--blanco);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--amarillo);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.report-header h3 {
+  margin: 0;
+  color: var(--negro);
+}
+
+.report-subject {
+  margin: 0.25rem 0 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-pending {
+  background: var(--amarillo-claro);
+  color: var(--negro);
+}
+
+.status-resolved {
+  background: var(--success);
+  color: var(--blanco);
+}
+
+.report-body {
+  margin-bottom: 1rem;
+}
+
+.report-motive {
+  font-weight: 600;
+  color: var(--rojo);
+  margin: 0 0 0.5rem 0;
+}
+
+.report-description {
+  color: var(--negro);
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.report-date {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.report-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Report Detail Modal */
+#report-detail-modal .modal-panel {
+  width: min(700px, 100%);
+}
+
+#report-detail-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  margin-top: 1rem;
+}
+
+.report-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--negro);
+  font-size: 1rem;
+}
+
+.detail-section p {
+  margin: 0;
+  color: var(--negro);
+}
+
+.detail-subject {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.evidences-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.evidences-section h4 {
+  margin-bottom: 1rem;
+}
+
+.evidences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.evidence-item {
+  background: var(--gris-claro);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  text-align: center;
+}
+
+.evidence-name {
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.evidence-type {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.evidence-size {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .admin-filters {
+    flex-direction: column;
+  }
+
+  .admin-filters .search,
+  .admin-filters .select {
+    min-width: 100%;
+  }
+
+  .report-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .report-actions {
+    flex-direction: column;
+  }
+}

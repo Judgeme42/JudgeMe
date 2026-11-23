@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JudgeMe · Panel de Administrador</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">
+          <img src="Escudo_uach.jpg" alt="Logo UACH" class="brand-mark" />
+          <div class="brand-divider"></div>
+          <img src="images.jpg" alt="Facultad FCA" class="brand-faculty" />
+          <span class="brand-text">
+            <strong>Facultad de Contaduría y Administración</strong>
+            <small>Universidad Autónoma de Chihuahua</small>
+          </span>
+        </a>
+        <nav class="nav">
+          <a href="#reportes">Reportes</a>
+          <button class="user-info-btn" id="user-info"></button>
+          <button class="btn btn-ghost btn-small" id="logout-btn">Cerrar Sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <h2>Panel de Administrador</h2>
+            <p>Gestiona los reportes enviados por los estudiantes.</p>
+          </div>
+
+          <div class="admin-stats">
+            <div class="stat-card">
+              <h3>Total Reportes</h3>
+              <p class="stat-number" id="total-reports">0</p>
+            </div>
+            <div class="stat-card">
+              <h3>Pendientes</h3>
+              <p class="stat-number" id="pending-reports">0</p>
+            </div>
+            <div class="stat-card">
+              <h3>Atendidos</h3>
+              <p class="stat-number" id="resolved-reports">0</p>
+            </div>
+          </div>
+
+          <div class="admin-filters">
+            <label class="search">
+              <span class="sr-only">Buscar reporte</span>
+              <input
+                id="search-reports"
+                type="search"
+                placeholder="Buscar por docente, motivo o descripción…"
+                autocomplete="off"
+              />
+            </label>
+            <label class="select">
+              <span class="sr-only">Filtrar por estado</span>
+              <select id="status-filter">
+                <option value="todos">Todos los estados</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="atendido">Atendido</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="reports-list" class="reports-list">
+            <p class="loading">Cargando reportes...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>
+          Facultad de Contaduría y Administración · UACH<br />
+          Circuito Universitario Campus II, Chihuahua, Chih.
+        </p>
+        <p class="muted">Sistema de reportes · Canales de atención</p>
+      </div>
+    </footer>
+
+    <div class="modal" id="report-detail-modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <button class="icon-close" type="button" data-close aria-label="Cerrar">
+          ×
+        </button>
+        <p class="eyebrow">Detalle del Reporte</p>
+        <h3 id="detail-title">Información del Reporte</h3>
+        <div id="report-detail-content">
+          <p class="loading">Cargando detalles...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" hidden role="status"></div>
+
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>

@@ -77,8 +77,7 @@ loginForm.addEventListener("submit", async (event) => {
       .maybeSingle();
 
     if (admin && !adminError) {
-      // Redirigir a página de admin (por ahora no existe)
-      showToast("Acceso de administrador - página en desarrollo");
+      window.location.href = 'admin.html';
       return;
     }
 
