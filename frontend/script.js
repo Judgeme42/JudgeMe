@@ -56,17 +56,33 @@ loginForm.addEventListener("submit", async (event) => {
 
     if (error) throw error;
 
-    // Obtener datos del estudiante
+    // Intentar obtener estudiante primero
     const { data: student, error: studentError } = await supabaseClient
       .from("students")
       .select("*")
       .eq("user_id", data.user.id)
-      .single();
+      .maybeSingle();
 
-    if (studentError) throw studentError;
+    if (student && !studentError) {
+      currentUser = student;
+      redirectToMain();
+      return;
+    }
 
-    currentUser = student;
-    redirectToMain();
+    // Si no es estudiante, intentar obtener admin
+    const { data: admin, error: adminError } = await supabaseClient
+      .from("admin_users")
+      .select("*")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+
+    if (admin && !adminError) {
+      // Redirigir a página de admin (por ahora no existe)
+      showToast("Acceso de administrador - página en desarrollo");
+      return;
+    }
+
+    throw new Error("Usuario no encontrado como estudiante ni administrador");
   } catch (error) {
     showToast(error.message || "Error al iniciar sesión");
   }
