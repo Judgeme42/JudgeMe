@@ -31,15 +31,16 @@ serve(async (req) => {
       });
     }
 
-    // Contar reportes de los últimos 7 días
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    // Contar reportes de los últimos 3 días
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
     const { data: reports, error: countError } = await supabase
       .from("reports")
-      .select("id")
+      .select("id, created_at")
       .eq("student_id", student.id)
-      .gte("created_at", oneWeekAgo.toISOString());
+      .gte("created_at", threeDaysAgo.toISOString())
+      .order("created_at", { ascending: false });
 
     if (countError) {
       return new Response(JSON.stringify({ error: countError.message }), {
@@ -48,13 +49,27 @@ serve(async (req) => {
       });
     }
 
-    const canCreate = (reports?.length || 0) < 2;
+    const reportCount = reports?.length || 0;
+    const canCreate = reportCount === 0;
+
+    let nextAvailableDate = null;
+    if (!canCreate && reports && reports.length > 0) {
+      const lastReportDate = new Date(reports[0].created_at);
+      const nextAvailable = new Date(lastReportDate);
+      nextAvailable.setDate(nextAvailable.getDate() + 3);
+      nextAvailableDate = nextAvailable.toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
 
     return new Response(
       JSON.stringify({
         canCreate,
-        currentCount: reports?.length || 0,
-        maxCount: 2,
+        currentCount: reportCount,
+        maxCount: 1,
+        nextAvailableDate,
       }),
       {
         status: 200,

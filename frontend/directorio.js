@@ -117,7 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const limitData = await limitCheck.json();
 
       if (!limitData.canCreate) {
-        showToast(`Has alcanzado el límite de 2 reportes por semana. Ya tienes ${limitData.currentCount}.`);
+        const nextDate = limitData.nextAvailableDate
+          ? `Podrás enviar tu próximo reporte a partir del ${limitData.nextAvailableDate}.`
+          : "Ya has enviado un reporte recientemente.";
+        showToast(`Por motivos de evitar spam y falsos reportes, tu número de reportes disponibles se recarga en ${nextDate}`);
         return;
       }
 
