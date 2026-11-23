@@ -194,7 +194,7 @@ async function checkAuth() {
   }
 
   currentUser = student;
-  userInfo.textContent = `${currentUser.full_name} (${currentUser.student_number})`;
+  userInfo.textContent = `Estudiante ${currentUser.student_number}`;
 
   await loadTeachers();
 }
