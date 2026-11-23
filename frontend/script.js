@@ -66,7 +66,7 @@ loginForm.addEventListener("submit", async (event) => {
     if (studentError) throw studentError;
 
     currentUser = student;
-    showMainContent();
+    redirectToMain();
   } catch (error) {
     showToast(error.message || "Error al iniciar sesión");
   }
@@ -120,7 +120,7 @@ registerForm.addEventListener("submit", async (event) => {
 logoutBtn.addEventListener("click", async () => {
   await supabaseClient.auth.signOut();
   currentUser = null;
-  location.reload();
+  window.location.href = 'index.html';
 });
 
 // Check if user is already logged in
@@ -136,7 +136,7 @@ async function checkAuth() {
 
     if (!error && student) {
       currentUser = student;
-      showMainContent();
+      redirectToMain();
     }
   }
 }
@@ -149,6 +149,11 @@ async function showMainContent() {
   userInfo.textContent = `${currentUser.full_name} (${currentUser.student_number})`;
 
   await loadTeachers();
+}
+
+// Redirigir a directorio.html después de login
+function redirectToMain() {
+  window.location.href = 'directorio.html';
 }
 
 // Load teachers from Supabase
