@@ -1,8 +1,9 @@
 -- Fix RLS policies para evitar recursion en admin_users
 -- Ejecutar en el SQL Editor de Supabase
 
--- Eliminar policies problemáticas
+-- Eliminar TODAS las policies de admin_users primero
 DROP POLICY IF EXISTS "Admins ven otros admins" ON admin_users;
+DROP POLICY IF EXISTS "Admin puede crear admins" ON admin_users;
 DROP POLICY IF EXISTS "Admin ve todos los estudiantes" ON students;
 DROP POLICY IF EXISTS "Admin ve todos los reportes" ON reports;
 DROP POLICY IF EXISTS "Admin ve todas las evidencias" ON report_evidences;
@@ -17,6 +18,10 @@ $$ LANGUAGE sql SECURITY DEFINER;
 
 -- Recrear policies usando la función auxiliar
 
+-- admin_users
+CREATE POLICY "Admins ven otros admins" ON admin_users FOR SELECT USING (is_admin());
+CREATE POLICY "Admin puede crear admins" ON admin_users FOR INSERT WITH CHECK (is_admin());
+
 -- students
 CREATE POLICY "Admin ve todos los estudiantes" ON students FOR SELECT USING (is_admin());
 
@@ -25,7 +30,3 @@ CREATE POLICY "Admin ve todos los reportes" ON reports FOR SELECT USING (is_admi
 
 -- report_evidences
 CREATE POLICY "Admin ve todas las evidencias" ON report_evidences FOR SELECT USING (is_admin());
-
--- admin_users
-CREATE POLICY "Admins ven otros admins" ON admin_users FOR SELECT USING (is_admin());
-CREATE POLICY "Admin puede crear admins" ON admin_users FOR INSERT WITH CHECK (is_admin());

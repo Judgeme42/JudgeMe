@@ -1,3 +1,3 @@
 // Configuración de Supabase para el frontend
 window.SUPABASE_URL = "https://ddgsdfuidrjkvuukgzgb.supabase.co";
-window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50a2V0YnZxcnFpbHZ3a2FldndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNDU0MTYsImV4cCI6MjEwOTgyMTQxNn0.xOUJpoIs9qhkkLP23hXZNKGLpR4_JesOA-FtIxuYQkA";
+window.SUPABASE_ANON_KEY = "sb_publishable_wiMDd6PNZvhl4sejjWSw9Q_BoHot8Ma";
