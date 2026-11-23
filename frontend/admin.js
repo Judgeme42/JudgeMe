@@ -77,7 +77,7 @@ async function checkAuth() {
   }
 
   currentAdmin = admin;
-  userInfo.textContent = `Admin ${admin.email}`;
+  userInfo.textContent = admin.email;
 
   await loadReports();
 }
