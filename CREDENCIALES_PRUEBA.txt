@@ -1,0 +1,32 @@
+========================================
+CREDENCIALES DE PRUEBA - JudgeMe
+========================================
+
+ESTUDIANTES (para el frontend):
+----------------------------------------
+Email: test@uach.mx
+Contraseña: temporal123
+
+Email: test2@uach.mx
+Contraseña: temporal123
+
+========================================
+
+ADMINISTRADOR:
+----------------------------------------
+Email: admin@uach.mx
+Contraseña: temporal123
+
+NOTA: El admin no tiene interfaz web todavía.
+Para ver reportes como admin, usa Supabase
+directamente (Table Editor → reports).
+
+========================================
+IMPORTANTE:
+----------------------------------------
+- La contraseña "temporal123" es TEMPORAL
+- Los usuarios reales deben registrarse con
+  su correo institucional y cambiar su contraseña
+- Para producción, cambia estas credenciales
+
+========================================
