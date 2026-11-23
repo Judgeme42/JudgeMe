@@ -193,7 +193,6 @@ async function loadTeachers() {
       bio: t.bio || "Docente de la FCA UACH",
     }));
 
-    document.getElementById("teacher-count").textContent = teachers.length;
     render();
   } catch (error) {
     showToast(`Error: ${error.message}`);
