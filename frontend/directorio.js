@@ -197,13 +197,27 @@ async function loadTeachers() {
 
     if (error) throw error;
 
-    teachers = data.map((t) => ({
-      id: t.id,
-      name: t.full_name,
-      program: t.program_code,
-      programLabel: t.program_label,
-      subject: t.subject,
-      bio: t.bio || "Docente de la FCA UACH",
+    // Agrupar maestros por nombre y combinar sus materias
+    const teacherMap = new Map();
+
+    data.forEach((t) => {
+      const key = t.full_name;
+      if (!teacherMap.has(key)) {
+        teacherMap.set(key, {
+          id: t.id,
+          name: t.full_name,
+          subjects: [t.subject],
+          bio: t.bio || "Docente de la FCA UACH",
+        });
+      } else {
+        teacherMap.get(key).subjects.push(t.subject);
+      }
+    });
+
+    teachers = Array.from(teacherMap.values()).map((t) => ({
+      ...t,
+      subjects: [...new Set(t.subjects)], // Eliminar materias duplicadas
+      subject: t.subjects.join(", "), // Para mostrar en la tarjeta
     }));
 
     render();
@@ -236,10 +250,10 @@ function render() {
       if (!nameMatches) return false;
     }
 
-    // Búsqueda por materia
+    // Búsqueda por materia (buscar en todas las materias del maestro)
     if (subjectFilter) {
       const subjectWords = subjectFilter.split(/\s+/).filter((w) => w.length > 0);
-      const subjectHaystack = teacher.subject.toLowerCase();
+      const subjectHaystack = teacher.subjects.join(" ").toLowerCase();
       const subjectMatches = subjectWords.every((word) => subjectHaystack.includes(word));
       if (!subjectMatches) return false;
     }
@@ -258,12 +272,10 @@ function render() {
           <div class="avatar" aria-hidden="true">${initials(teacher.name)}</div>
           <div>
             <h3>${teacher.name}</h3>
-            <p class="meta">${teacher.subject}</p>
           </div>
         </div>
         <div class="tags">
-          <span class="tag">${teacher.program}</span>
-          <span class="tag">${teacher.programLabel}</span>
+          ${teacher.subjects.map((subj) => `<span class="tag">${subj}</span>`).join('')}
         </div>
         <p>${teacher.bio}</p>
         <button class="btn btn-primary" type="button" data-teacher="${teacher.id}">
