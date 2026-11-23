@@ -1,4 +1,7 @@
-const API_URL = window.JUDGEME_API_URL || "";
+const supabase = window.supabase.createClient(
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+);
 
 // DOM Elements
 const authScreen = document.getElementById("auth-screen");
@@ -22,8 +25,7 @@ const toast = document.getElementById("toast");
 
 let teachers = [];
 let selectedTeacher = "";
-let currentStudent = null;
-let authToken = null;
+let currentUser = null;
 
 // Switch between login and register screens
 const showRegisterBtn = document.getElementById("show-register");
@@ -45,29 +47,26 @@ loginForm.addEventListener("submit", async (event) => {
   const formData = new FormData(loginForm);
 
   try {
-    const response = await fetch(`${API_URL}/api/students/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        studentNumber: formData.get("studentNumber"),
-        password: formData.get("password"),
-      }),
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: formData.get("email"),
+      password: formData.get("password"),
     });
 
-    const data = await response.json();
+    if (error) throw error;
 
-    if (!response.ok) {
-      throw new Error(data.error || "Error al iniciar sesión");
-    }
+    // Obtener datos del estudiante
+    const { data: student, error: studentError } = await supabase
+      .from("students")
+      .select("*")
+      .eq("user_id", data.user.id)
+      .single();
 
-    currentStudent = data.student;
-    authToken = data.token;
-    localStorage.setItem("studentToken", authToken);
-    localStorage.setItem("studentData", JSON.stringify(currentStudent));
+    if (studentError) throw studentError;
 
+    currentUser = student;
     showMainContent();
   } catch (error) {
-    showToast(error.message);
+    showToast(error.message || "Error al iniciar sesión");
   }
 });
 
@@ -81,51 +80,62 @@ registerForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  const studentNumber = formData.get("studentNumber");
+  const email = formData.get("email");
+  const password = formData.get("password");
+
   try {
-    const response = await fetch(`${API_URL}/api/students/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        studentNumber: formData.get("studentNumber"),
-        email: formData.get("email"),
-        password: formData.get("password"),
-      }),
+    // Crear usuario en Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
     });
 
-    const data = await response.json();
+    if (authError) throw authError;
 
-    if (!response.ok) {
-      throw new Error(data.error || "Error al registrarse");
+    if (!authData.user) {
+      throw new Error("No se pudo crear el usuario");
     }
 
-    showToast("Cuenta creada exitosamente. Ahora puedes iniciar sesión.");
+    // Crear registro en students
+    const { error: studentError } = await supabase.from("students").insert({
+      user_id: authData.user.id,
+      student_number: studentNumber,
+      full_name: studentNumber, // Nombre por defecto
+    });
 
-    // Cambiar a tab de login
-    authTabs[0].click();
-    loginForm.elements.studentNumber.value = formData.get("studentNumber");
+    if (studentError) throw studentError;
+
+    showToast("Cuenta creada exitosamente. Ahora puedes iniciar sesión.");
+    showLoginBtn.click();
+    loginForm.elements.email.value = email;
   } catch (error) {
-    showToast(error.message);
+    showToast(error.message || "Error al registrarse");
   }
 });
 
 // Logout
-logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("studentToken");
-  localStorage.removeItem("studentData");
-  currentStudent = null;
-  authToken = null;
+logoutBtn.addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  currentUser = null;
   location.reload();
 });
 
 // Check if user is already logged in
-function checkAuth() {
-  const token = localStorage.getItem("studentToken");
-  const studentData = localStorage.getItem("studentData");
+async function checkAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (token && studentData) {
-    authToken = token;
-    currentStudent = JSON.parse(studentData);
-    showMainContent();
+  if (session) {
+    const { data: student, error } = await supabase
+      .from("students")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .single();
+
+    if (!error && student) {
+      currentUser = student;
+      showMainContent();
+    }
   }
 }
 
@@ -134,26 +144,26 @@ async function showMainContent() {
   authScreen.hidden = true;
   mainContent.hidden = false;
 
-  userInfo.textContent = `${currentStudent.fullName} (${currentStudent.studentNumber})`;
+  userInfo.textContent = `${currentUser.full_name} (${currentUser.student_number})`;
 
   await loadTeachers();
 }
 
-// Load teachers from API
+// Load teachers from Supabase
 async function loadTeachers() {
   try {
-    const response = await fetch(`${API_URL}/api/teachers`);
-    const data = await response.json();
+    const { data, error } = await supabase
+      .from("teachers")
+      .select("*")
+      .eq("is_active", true);
 
-    if (!response.ok) {
-      throw new Error(data.error || "Error al cargar maestros");
-    }
+    if (error) throw error;
 
-    teachers = data.teachers.map((t) => ({
+    teachers = data.map((t) => ({
       id: t.id,
-      name: t.fullName,
-      program: t.programCode,
-      programLabel: t.programLabel,
+      name: t.full_name,
+      program: t.program_code,
+      programLabel: t.program_label,
       subject: t.subject,
       bio: t.bio || "Docente de la FCA UACH",
     }));
@@ -186,12 +196,9 @@ function render() {
 
     if (!query) return true;
 
-    // Búsqueda flexible: dividir la consulta en palabras y verificar que cada palabra aparezca en cualquier parte del nombre
     const queryWords = query.split(/\s+/).filter((w) => w.length > 0);
     const haystack = `${teacher.name} ${teacher.subject} ${teacher.programLabel}`.toLowerCase();
-    const nameWords = teacher.name.toLowerCase().split(/\s+/);
 
-    // Cada palabra de la consulta debe aparecer en el haystack (nombre completo, materia o programa)
     return queryWords.every((word) => haystack.includes(word));
   });
 
@@ -230,13 +237,11 @@ function openModal(teacherId) {
   selectedTeacher = teacherId;
   modalTeacher.textContent = teacher.name;
 
-  // Agregar teacherId al formulario
   const teacherIdInput = document.createElement("input");
   teacherIdInput.type = "hidden";
   teacherIdInput.name = "teacherId";
   teacherIdInput.value = teacherId;
 
-  // Eliminar input anterior si existe
   const existingInput = form.querySelector('input[name="teacherId"]');
   if (existingInput) existingInput.remove();
 
@@ -256,7 +261,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.hidden = false;
   window.setTimeout(() => {
-    toast.hidden = true;
+    toast.hidden = false;
   }, 3200);
 }
 
@@ -278,41 +283,94 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
 
-  // Validar que haya al menos una evidencia
-  const files = formData.getAll("evidences");
-  if (files.length === 0 || (files.length === 1 && files[0].size === 0)) {
-    showToast("Debes adjuntar al menos una evidencia (foto, audio, video o documento)");
+  const motive = formData.get("motive");
+  const description = formData.get("description");
+
+  if (description.length < 20) {
+    showToast("La descripción debe tener al menos 20 caracteres");
     return;
   }
 
-  // Validar tamaño máximo de archivos
-  const maxSize = 10 * 1024 * 1024; // 10MB
+  const files = formData.getAll("evidences");
+  if (files.length === 0 || (files.length === 1 && files[0].size === 0)) {
+    showToast("Debes adjuntar al menos una evidencia");
+    return;
+  }
+
+  const maxSize = 10 * 1024 * 1024;
   for (const file of files) {
     if (file.size > maxSize) {
-      showToast(`El archivo ${file.name} excede el tamaño máximo de 10MB`);
+      showToast(`El archivo ${file.name} excede 10MB`);
       return;
     }
   }
 
   try {
-    const response = await fetch(`${API_URL}/api/reports`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: formData,
-    });
+    // Verificar límite de reportes (Edge Function)
+    const { data: { session } } = await supabase.auth.getSession();
+    const limitCheck = await fetch(
+      `${window.SUPABASE_URL}/functions/v1/check-report-limit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ userId: session.user.id }),
+      }
+    );
 
-    const data = await response.json();
+    const limitData = await limitCheck.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Error al enviar reporte");
+    if (!limitData.canCreate) {
+      showToast(`Has alcanzado el límite de 2 reportes por semana. Ya tienes ${limitData.currentCount}.`);
+      return;
+    }
+
+    // Crear reporte
+    const { data: report, error: reportError } = await supabase
+      .from("reports")
+      .insert({
+        teacher_id: selectedTeacher,
+        student_id: currentUser.id,
+        motive,
+        description,
+        is_anonymous: true,
+      })
+      .select()
+      .single();
+
+    if (reportError) throw reportError;
+
+    // Subir evidencias
+    for (const file of files) {
+      const fileName = `${report.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const { error: uploadError } = await supabase.storage
+        .from("report-evidences")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error("Error al subir archivo:", uploadError);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("report-evidences")
+        .getPublicUrl(fileName);
+
+      await supabase.from("report_evidences").insert({
+        report_id: report.id,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        file_path: fileName,
+      });
     }
 
     closeModal();
-    showToast("Reporte enviado exitosamente con evidencias. Será revisado por la administración.");
+    showToast("Reporte enviado exitosamente. Será revisado por la administración.");
   } catch (error) {
-    showToast(error.message);
+    showToast(error.message || "Error al enviar reporte");
   }
 });
 

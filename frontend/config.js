@@ -1,8 +1,3 @@
-// Configuración del entorno — este es el ÚNICO archivo que hay que editar en el servidor real.
-//
-// Si el backend está en el mismo dominio (ej. tudominio.com/api) o usas server.js con proxy:
-//   déjalo como ""
-//
-// Si el backend está en otro dominio/subdominio:
-//   window.JUDGEME_API_URL = "https://api.tudominio.com";
-window.JUDGEME_API_URL = "";
+// Configuración de Supabase para el frontend
+window.SUPABASE_URL = "https://ddgsdfuidrjkvuukgzgb.supabase.co";
+window.SUPABASE_ANON_KEY = "TU_ANON_KEY"; // Consíguela en Supabase → Settings → API → anon public

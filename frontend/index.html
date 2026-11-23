@@ -29,11 +29,11 @@
         <div id="login-screen" class="auth-screen-content">
           <form id="login-form" class="auth-form">
             <h2>Iniciar Sesión</h2>
-            <p class="auth-description">Ingresa con tu número de matrícula y contraseña</p>
+            <p class="auth-description">Ingresa con tu correo institucional y contraseña</p>
 
             <label>
-              Número de Matrícula
-              <input type="text" name="studentNumber" required placeholder="Ej: 2024001" />
+              Correo Institucional
+              <input type="email" name="email" required placeholder="tu.correo@uach.mx" />
             </label>
 
             <label>
@@ -265,6 +265,7 @@
       <div class="toast" id="toast" hidden role="status"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="script.js"></script>
   </body>
