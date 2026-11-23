@@ -14,6 +14,11 @@ let selectedTeacher = "";
 let currentUser = null;
 let showAllTeachers = false;
 
+// Session timeout (2 hours)
+const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+let sessionTimeoutId = null;
+let lastActivity = Date.now();
+
 document.addEventListener('DOMContentLoaded', () => {
   authScreen = document.getElementById("auth-screen");
   mainContent = document.getElementById("main-content");
@@ -31,6 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
   modalTeacher = document.getElementById("modal-teacher");
   form = document.getElementById("report-form");
   toast = document.getElementById("toast");
+
+  // Session timeout management
+  startSessionTimeout();
+  setupActivityListeners();
 
   // Event listeners
   modal.addEventListener("click", (event) => {
@@ -325,6 +334,43 @@ function showToast(message) {
   window.setTimeout(() => {
     toast.hidden = false;
   }, 3200);
+}
+
+// Session timeout functions
+function startSessionTimeout() {
+  resetSessionTimeout();
+}
+
+function resetSessionTimeout() {
+  clearTimeout(sessionTimeoutId);
+  sessionTimeoutId = setTimeout(() => {
+    showToast("Sesión expirada por inactividad. Inicia sesión nuevamente.");
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 2000);
+  }, SESSION_TIMEOUT);
+}
+
+function setupActivityListeners() {
+  const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+  events.forEach(event => {
+    document.addEventListener(event, () => {
+      lastActivity = Date.now();
+      resetSessionTimeout();
+    }, true);
+  });
+
+  // Check session expiry every minute
+  setInterval(() => {
+    if (Date.now() - lastActivity > SESSION_TIMEOUT) {
+      clearTimeout(sessionTimeoutId);
+      showToast("Sesión expirada por inactividad. Inicia sesión nuevamente.");
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 2000);
+    }
+  }, 60000); // Check every minute
 }
 
 async function showHistory() {
