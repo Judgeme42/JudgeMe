@@ -1,4 +1,4 @@
-const supabase = window.supabase.createClient(
+const supabaseClientClient = window.supabaseClient.createClient(
   window.SUPABASE_URL,
   window.SUPABASE_ANON_KEY
 );
@@ -47,7 +47,7 @@ loginForm.addEventListener("submit", async (event) => {
   const formData = new FormData(loginForm);
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
       email: formData.get("email"),
       password: formData.get("password"),
     });
@@ -55,7 +55,7 @@ loginForm.addEventListener("submit", async (event) => {
     if (error) throw error;
 
     // Obtener datos del estudiante
-    const { data: student, error: studentError } = await supabase
+    const { data: student, error: studentError } = await supabaseClient
       .from("students")
       .select("*")
       .eq("user_id", data.user.id)
@@ -86,7 +86,7 @@ registerForm.addEventListener("submit", async (event) => {
 
   try {
     // Crear usuario en Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
       email,
       password,
     });
@@ -98,7 +98,7 @@ registerForm.addEventListener("submit", async (event) => {
     }
 
     // Crear registro en students
-    const { error: studentError } = await supabase.from("students").insert({
+    const { error: studentError } = await supabaseClient.from("students").insert({
       user_id: authData.user.id,
       student_number: studentNumber,
       full_name: studentNumber, // Nombre por defecto
@@ -116,17 +116,17 @@ registerForm.addEventListener("submit", async (event) => {
 
 // Logout
 logoutBtn.addEventListener("click", async () => {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   currentUser = null;
   location.reload();
 });
 
 // Check if user is already logged in
 async function checkAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
 
   if (session) {
-    const { data: student, error } = await supabase
+    const { data: student, error } = await supabaseClient
       .from("students")
       .select("*")
       .eq("user_id", session.user.id)
@@ -152,7 +152,7 @@ async function showMainContent() {
 // Load teachers from Supabase
 async function loadTeachers() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("teachers")
       .select("*")
       .eq("is_active", true);
@@ -307,7 +307,7 @@ form.addEventListener("submit", async (event) => {
 
   try {
     // Verificar límite de reportes (Edge Function)
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     const limitCheck = await fetch(
       `${window.SUPABASE_URL}/functions/v1/rapid-handler`,
       {
@@ -328,7 +328,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     // Crear reporte
-    const { data: report, error: reportError } = await supabase
+    const { data: report, error: reportError } = await supabaseClient
       .from("reports")
       .insert({
         teacher_id: selectedTeacher,
@@ -345,7 +345,7 @@ form.addEventListener("submit", async (event) => {
     // Subir evidencias
     for (const file of files) {
       const fileName = `${report.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseClient.storage
         .from("report-evidences")
         .upload(fileName, file);
 
@@ -354,11 +354,11 @@ form.addEventListener("submit", async (event) => {
         continue;
       }
 
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = supabaseClient.storage
         .from("report-evidences")
         .getPublicUrl(fileName);
 
-      await supabase.from("report_evidences").insert({
+      await supabaseClient.from("report_evidences").insert({
         report_id: report.id,
         file_name: file.name,
         file_type: file.type,
