@@ -257,6 +257,32 @@ body {
   color: var(--rojo);
 }
 
+/* Logout button in header */
+#logout-btn {
+  background: var(--gris-claro);
+  color: var(--negro);
+  border: 2px solid var(--gris-medio);
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+#logout-btn:hover {
+  background: var(--gris-medio);
+  border-color: var(--negro);
+}
+
+/* Center button text */
+.btn {
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btn-small {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
