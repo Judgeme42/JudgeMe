@@ -1,7 +1,9 @@
-const supabaseClientClient = window.supabaseClient.createClient(
-  window.SUPABASE_URL,
-  window.SUPABASE_ANON_KEY
-);
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://ddgsdfuidrjkvuukgzgb.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_wiMDd6PNZvhl4sejjWSw9Q_BoHot8Ma";
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // DOM Elements
 const authScreen = document.getElementById("auth-screen");
