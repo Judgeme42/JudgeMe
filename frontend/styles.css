@@ -799,3 +799,75 @@ body {
     text-align: center;
   }
 }
+
+/* User Info Button */
+.user-info-btn {
+  background: none;
+  border: none;
+  color: var(--negro);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.user-info-btn:hover {
+  background: var(--gris-claro);
+}
+
+/* History Modal */
+#history-modal .modal-panel {
+  width: min(600px, 100%);
+}
+
+#history-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 1rem;
+}
+
+.history-item {
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 0;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.history-subject {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.history-motive {
+  font-weight: 600;
+  color: var(--rojo);
+  margin: 0.5rem 0;
+}
+
+.history-description {
+  color: var(--negro);
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.history-date {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.loading, .empty, .error {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted);
+}

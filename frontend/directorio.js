@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_wiMDd6PNZvhl4sejjWSw9Q_BoHot8Ma";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // DOM Elements
-let authScreen, mainContent, logoutBtn, userInfo;
+let authScreen, mainContent, logoutBtn, userInfo, historyModal, historyContent;
 let grid, search, subjectInput, resultsMeta, emptyState, modal, modalTeacher, form, toast;
 
 let teachers = [];
@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   mainContent = document.getElementById("main-content");
   logoutBtn = document.getElementById("logout-btn");
   userInfo = document.getElementById("user-info");
+  historyModal = document.getElementById("history-modal");
+  historyContent = document.getElementById("history-content");
 
   grid = document.getElementById("teacher-grid");
   search = document.getElementById("search");
@@ -47,6 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   search.addEventListener("input", render);
   subjectInput.addEventListener("input", render);
+
+  // Event listener para abrir historial de reportes
+  userInfo.addEventListener("click", async () => {
+    await showHistory();
+  });
+
+  // Event listener para cerrar modal de historial
+  historyModal.addEventListener("click", (event) => {
+    if (event.target.dataset.close !== undefined) closeHistoryModal();
+  });
+
   logoutBtn.addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     window.location.href = 'index.html';
@@ -300,4 +313,67 @@ function showToast(message) {
   window.setTimeout(() => {
     toast.hidden = false;
   }, 3200);
+}
+
+async function showHistory() {
+  historyContent.innerHTML = '<p class="loading">Cargando reportes...</p>';
+  historyModal.hidden = false;
+  document.body.style.overflow = "hidden";
+
+  try {
+    const { data: reports, error } = await supabaseClient
+      .from("reports")
+      .select(`
+        id,
+        motive,
+        description,
+        created_at,
+        teachers (
+          full_name,
+          subject
+        )
+      `)
+      .eq("student_id", currentUser.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    if (reports.length === 0) {
+      historyContent.innerHTML = '<p class="empty">No tienes reportes aún.</p>';
+      return;
+    }
+
+    const reportsHtml = reports.map((report) => {
+      const teacherName = report.teachers?.full_name || "Docente desconocido";
+      const subject = report.teachers?.subject || "";
+      const date = new Date(report.created_at).toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      return `
+        <div class="history-item">
+          <div class="history-header">
+            <strong>${teacherName}</strong>
+            <span class="history-subject">${subject}</span>
+          </div>
+          <p class="history-motive">${report.motive}</p>
+          <p class="history-description">${report.description}</p>
+          <p class="history-date">${date}</p>
+        </div>
+      `;
+    }).join('');
+
+    historyContent.innerHTML = reportsHtml;
+  } catch (error) {
+    historyContent.innerHTML = `<p class="error">Error al cargar reportes: ${error.message}</p>`;
+  }
+}
+
+function closeHistoryModal() {
+  historyModal.hidden = true;
+  document.body.style.overflow = "";
 }
