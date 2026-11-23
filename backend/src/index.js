@@ -16,7 +16,14 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const port = Number(process.env.BACKEND_PORT || process.env.PORT) || 3001;
 
-app.use(cors());
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map((u) => u.trim())
+  : ["http://localhost:8000", "https://proyectos2026.aldretelabs.net"];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
