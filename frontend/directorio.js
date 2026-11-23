@@ -6,24 +6,146 @@ const SUPABASE_ANON_KEY = "sb_publishable_wiMDd6PNZvhl4sejjWSw9Q_BoHot8Ma";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // DOM Elements
-const authScreen = document.getElementById("auth-screen");
-const mainContent = document.getElementById("main-content");
-const logoutBtn = document.getElementById("logout-btn");
-const userInfo = document.getElementById("user-info");
-
-const grid = document.getElementById("teacher-grid");
-const search = document.getElementById("search");
-const programFilter = document.getElementById("program-filter");
-const resultsMeta = document.getElementById("results-meta");
-const emptyState = document.getElementById("empty-state");
-const modal = document.getElementById("report-modal");
-const modalTeacher = document.getElementById("modal-teacher");
-const form = document.getElementById("report-form");
-const toast = document.getElementById("toast");
+let authScreen, mainContent, logoutBtn, userInfo;
+let grid, search, programFilter, resultsMeta, emptyState, modal, modalTeacher, form, toast;
 
 let teachers = [];
 let selectedTeacher = "";
 let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  authScreen = document.getElementById("auth-screen");
+  mainContent = document.getElementById("main-content");
+  logoutBtn = document.getElementById("logout-btn");
+  userInfo = document.getElementById("user-info");
+
+  grid = document.getElementById("teacher-grid");
+  search = document.getElementById("search");
+  programFilter = document.getElementById("program-filter");
+  resultsMeta = document.getElementById("results-meta");
+  emptyState = document.getElementById("empty-state");
+  modal = document.getElementById("report-modal");
+  modalTeacher = document.getElementById("modal-teacher");
+  form = document.getElementById("report-form");
+  toast = document.getElementById("toast");
+
+  // Event listeners
+  modal.addEventListener("click", (event) => {
+    if (event.target.dataset.close !== undefined) closeModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) closeModal();
+  });
+
+  grid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-teacher]");
+    if (!button) return;
+    openModal(button.dataset.teacher);
+  });
+
+  search.addEventListener("input", render);
+  programFilter.addEventListener("change", render);
+  logoutBtn.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'index.html';
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    const motive = formData.get("motive");
+    const description = formData.get("description");
+
+    if (description.length < 20) {
+      showToast("La descripción debe tener al menos 20 caracteres");
+      return;
+    }
+
+    const files = formData.getAll("evidences");
+    if (files.length === 0 || (files.length === 1 && files[0].size === 0)) {
+      showToast("Debes adjuntar al menos una evidencia");
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+    for (const file of files) {
+      if (file.size > maxSize) {
+        showToast(`El archivo ${file.name} excede 10MB`);
+        return;
+      }
+    }
+
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const limitCheck = await fetch(
+        `${window.SUPABASE_URL}/functions/v1/rapid-handler`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ userId: session.user.id }),
+        }
+      );
+
+      const limitData = await limitCheck.json();
+
+      if (!limitData.canCreate) {
+        showToast(`Has alcanzado el límite de 2 reportes por semana. Ya tienes ${limitData.currentCount}.`);
+        return;
+      }
+
+      const { data: report, error: reportError } = await supabaseClient
+        .from("reports")
+        .insert({
+          teacher_id: selectedTeacher,
+          student_id: currentUser.id,
+          motive,
+          description,
+          is_anonymous: true,
+        })
+        .select()
+        .single();
+
+      if (reportError) throw reportError;
+
+      for (const file of files) {
+        const fileName = `${report.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from("report-evidences")
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error("Error al subir archivo:", uploadError);
+          continue;
+        }
+
+        const { data: urlData } = supabaseClient.storage
+          .from("report-evidences")
+          .getPublicUrl(fileName);
+
+        await supabaseClient.from("report_evidences").insert({
+          report_id: report.id,
+          file_name: file.name,
+          file_type: file.type,
+          file_size: file.size,
+          file_path: fileName,
+        });
+      }
+
+      closeModal();
+      showToast("Reporte enviado exitosamente. Será revisado por la administración.");
+    } catch (error) {
+      showToast(error.message || "Error al enviar reporte");
+    }
+  });
+
+  // Initialize
+  checkAuth();
+});
 
 // Verificar autenticación al cargar
 async function checkAuth() {
@@ -166,120 +288,3 @@ function showToast(message) {
     toast.hidden = false;
   }, 3200);
 }
-
-grid.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-teacher]");
-  if (!button) return;
-  openModal(button.dataset.teacher);
-});
-
-modal.addEventListener("click", (event) => {
-  if (event.target.dataset.close !== undefined) closeModal();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !modal.hidden) closeModal();
-});
-
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(form);
-
-  const motive = formData.get("motive");
-  const description = formData.get("description");
-
-  if (description.length < 20) {
-    showToast("La descripción debe tener al menos 20 caracteres");
-    return;
-  }
-
-  const files = formData.getAll("evidences");
-  if (files.length === 0 || (files.length === 1 && files[0].size === 0)) {
-    showToast("Debes adjuntar al menos una evidencia");
-    return;
-  }
-
-  const maxSize = 10 * 1024 * 1024;
-  for (const file of files) {
-    if (file.size > maxSize) {
-      showToast(`El archivo ${file.name} excede 10MB`);
-      return;
-    }
-  }
-
-  try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    const limitCheck = await fetch(
-      `${window.SUPABASE_URL}/functions/v1/rapid-handler`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ userId: session.user.id }),
-      }
-    );
-
-    const limitData = await limitCheck.json();
-
-    if (!limitData.canCreate) {
-      showToast(`Has alcanzado el límite de 2 reportes por semana. Ya tienes ${limitData.currentCount}.`);
-      return;
-    }
-
-    const { data: report, error: reportError } = await supabaseClient
-      .from("reports")
-      .insert({
-        teacher_id: selectedTeacher,
-        student_id: currentUser.id,
-        motive,
-        description,
-        is_anonymous: true,
-      })
-      .select()
-      .single();
-
-    if (reportError) throw reportError;
-
-    for (const file of files) {
-      const fileName = `${report.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const { error: uploadError } = await supabaseClient.storage
-        .from("report-evidences")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error("Error al subir archivo:", uploadError);
-        continue;
-      }
-
-      const { data: urlData } = supabaseClient.storage
-        .from("report-evidences")
-        .getPublicUrl(fileName);
-
-      await supabaseClient.from("report_evidences").insert({
-        report_id: report.id,
-        file_name: file.name,
-        file_type: file.type,
-        file_size: file.size,
-        file_path: fileName,
-      });
-    }
-
-    closeModal();
-    showToast("Reporte enviado exitosamente. Será revisado por la administración.");
-  } catch (error) {
-    showToast(error.message || "Error al enviar reporte");
-  }
-});
-
-search.addEventListener("input", render);
-programFilter.addEventListener("change", render);
-
-logoutBtn.addEventListener("click", async () => {
-  await supabaseClient.auth.signOut();
-  window.location.href = 'index.html';
-});
-
-// Initialize
-checkAuth();
