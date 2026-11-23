@@ -4,7 +4,10 @@
   "private": true,
   "description": "Frontend de JudgeMe — FCA UACH",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js"
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
   }
 }
