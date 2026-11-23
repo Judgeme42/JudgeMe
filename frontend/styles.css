@@ -257,22 +257,22 @@ body {
   color: var(--rojo);
 }
 
-/* Logout button in header */
+/* Logout button in header - same style as nav links */
 #logout-btn {
-  background: var(--gris-claro);
+  background: none;
+  border: none;
   color: var(--negro);
-  border: 2px solid var(--gris-medio);
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
   font-weight: 500;
-  border-radius: var(--radius-sm);
   cursor: pointer;
+  padding: 0.5rem 0;
+  text-decoration: none;
   transition: var(--transition);
+  font-family: inherit;
+  font-size: inherit;
 }
 
 #logout-btn:hover {
-  background: var(--gris-medio);
-  border-color: var(--negro);
+  color: var(--rojo);
 }
 
 /* Center button text */
@@ -826,20 +826,22 @@ body {
   }
 }
 
-/* User Info Button */
+/* User Info Button - same style as nav links */
 .user-info-btn {
   background: none;
   border: none;
   color: var(--negro);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
+  padding: 0.5rem 0;
+  text-decoration: none;
   transition: var(--transition);
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .user-info-btn:hover {
-  background: var(--gris-claro);
+  color: var(--rojo);
 }
 
 /* History Modal */
