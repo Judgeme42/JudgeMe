@@ -7,13 +7,12 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // DOM Elements
 let authScreen, mainContent, logoutBtn, userInfo;
-let grid, search, programFilter, resultsMeta, emptyState, modal, modalTeacher, form, toast;
+let grid, search, subjectInput, resultsMeta, emptyState, modal, modalTeacher, form, toast;
 
 let teachers = [];
 let selectedTeacher = "";
 let currentUser = null;
-let displayedTeachers = 6; // Mostrar 6 maestros inicialmente
-let filteredTeachers = [];
+let showAllTeachers = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   authScreen = document.getElementById("auth-screen");
@@ -23,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   grid = document.getElementById("teacher-grid");
   search = document.getElementById("search");
-  programFilter = document.getElementById("program-filter");
+  subjectInput = document.getElementById("subject-filter");
   resultsMeta = document.getElementById("results-meta");
   emptyState = document.getElementById("empty-state");
   modal = document.getElementById("report-modal");
@@ -47,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   search.addEventListener("input", render);
-  programFilter.addEventListener("change", render);
+  subjectInput.addEventListener("input", render);
   logoutBtn.addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     window.location.href = 'index.html';
@@ -147,13 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize
   checkAuth();
-
-  // Agregar scroll listener para cargar más maestros
-  window.addEventListener('scroll', () => {
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-      loadMoreTeachers();
-    }
-  });
 });
 
 // Verificar autenticación al cargar
@@ -221,24 +213,30 @@ function initials(name) {
 
 function render() {
   const query = search.value.trim().toLowerCase();
-  const program = programFilter.value;
+  const subjectFilter = subjectInput.value.trim().toLowerCase();
+
   const filtered = teachers.filter((teacher) => {
-    const matchesProgram = program === "todos" || teacher.program === program;
+    // Búsqueda por nombre
+    if (query) {
+      const queryWords = query.split(/\s+/).filter((w) => w.length > 0);
+      const nameHaystack = teacher.name.toLowerCase();
+      const nameMatches = queryWords.every((word) => nameHaystack.includes(word));
+      if (!nameMatches) return false;
+    }
 
-    if (!matchesProgram) return false;
+    // Búsqueda por materia
+    if (subjectFilter) {
+      const subjectWords = subjectFilter.split(/\s+/).filter((w) => w.length > 0);
+      const subjectHaystack = teacher.subject.toLowerCase();
+      const subjectMatches = subjectWords.every((word) => subjectHaystack.includes(word));
+      if (!subjectMatches) return false;
+    }
 
-    if (!query) return true;
-
-    const queryWords = query.split(/\s+/).filter((w) => w.length > 0);
-    const haystack = `${teacher.name} ${teacher.subject} ${teacher.programLabel}`.toLowerCase();
-
-    return queryWords.every((word) => haystack.includes(word));
+    return true;
   });
 
-  filteredTeachers = filtered;
-
-  // Mostrar solo los primeros N maestros
-  const teachersToShow = filtered.slice(0, displayedTeachers);
+  // Si no hay búsqueda ni filtro, mostrar solo 6 maestros
+  const teachersToShow = (query || subjectFilter) ? filtered : filtered.slice(0, 6);
 
   grid.innerHTML = teachersToShow
     .map(
@@ -264,7 +262,9 @@ function render() {
     )
     .join("");
 
-  resultsMeta.textContent = `${filtered.length} maestro${filtered.length === 1 ? "" : "s"} en el directorio (${teachersToShow.length} mostrados)`;
+  resultsMeta.textContent = filtered.length > 6 && !(query || subjectFilter)
+    ? `Mostrando 6 de ${filtered.length} maestros. Usa el buscador para ver más.`
+    : `${filtered.length} maestro${filtered.length === 1 ? "" : "s"} encontrado${filtered.length === 1 ? "" : "s"}`;
   emptyState.hidden = filtered.length > 0;
 }
 
@@ -301,11 +301,4 @@ function showToast(message) {
   window.setTimeout(() => {
     toast.hidden = false;
   }, 3200);
-}
-
-function loadMoreTeachers() {
-  if (displayedTeachers < filteredTeachers.length) {
-    displayedTeachers += 6;
-    render();
-  }
 }
