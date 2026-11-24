@@ -23,11 +23,12 @@ CREATE POLICY "Estudiantes crean su perfil" ON students
 CREATE OR REPLACE FUNCTION public.handle_new_student() RETURNS trigger AS $$
 BEGIN
   IF NEW.raw_user_meta_data->>'user_type' = 'student' THEN
-    INSERT INTO public.students (user_id, student_number, full_name)
+    INSERT INTO public.students (user_id, student_number, full_name, email)
     VALUES (
       NEW.id,
       NEW.raw_user_meta_data->>'student_number',
-      NEW.raw_user_meta_data->>'student_number'
+      NEW.raw_user_meta_data->>'student_number',
+      NEW.email
     );
   END IF;
   RETURN NEW;
