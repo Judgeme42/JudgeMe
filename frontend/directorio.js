@@ -103,12 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const { data: { session } } = await supabaseClient.auth.getSession();
       const limitCheck = await fetch(
-        `${window.SUPABASE_URL}/functions/v1/rapid-handler`,
+        `${SUPABASE_URL}/functions/v1/rapid-handler`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({ userId: session.user.id }),
         }
