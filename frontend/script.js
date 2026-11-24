@@ -102,10 +102,28 @@ registerForm.addEventListener("submit", async (event) => {
   const password = formData.get("password");
 
   try {
-    // Crear usuario en Supabase Auth
+    // Verificar que la matrícula no exista ya
+    const { data: exists, error: checkError } = await supabaseClient.rpc(
+      "check_student_number",
+      { p_number: studentNumber }
+    );
+
+    if (checkError) throw checkError;
+    if (exists) {
+      showToast("Esta matrícula ya está registrada. Inicia sesión o usa otra matrícula.");
+      return;
+    }
+
+    // Crear usuario en Supabase Auth con metadata para el trigger
     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          user_type: "student",
+          student_number: studentNumber,
+        },
+      },
     });
 
     if (authError) throw authError;
@@ -114,18 +132,16 @@ registerForm.addEventListener("submit", async (event) => {
       throw new Error("No se pudo crear el usuario");
     }
 
-    // Crear registro en students
-    const { error: studentError } = await supabaseClient.from("students").insert({
-      user_id: authData.user.id,
-      student_number: studentNumber,
-      full_name: studentNumber, // Nombre por defecto
-    });
-
-    if (studentError) throw studentError;
-
-    showToast("Cuenta creada exitosamente. Ahora puedes iniciar sesión.");
-    showLoginBtn.click();
-    loginForm.elements.email.value = email;
+    if (authData.session) {
+      // Confirmación de email desactivada: el usuario ya tiene sesión
+      showToast("Cuenta creada exitosamente.");
+      window.location.href = "directorio.html";
+    } else {
+      // Confirmación de email activada
+      showToast("Cuenta creada. Revisa tu correo para confirmar tu cuenta y luego inicia sesión.");
+      showLoginBtn.click();
+      loginForm.elements.email.value = email;
+    }
   } catch (error) {
     showToast(error.message || "Error al registrarse");
   }
