@@ -78,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     event.preventDefault();
     const formData = new FormData(form);
 
-    const motive = formData.get("motive");
-    const description = formData.get("description");
+    const motive = formData.get("motivo");
+    const description = formData.get("descripcion");
 
     if (description.length < 20) {
       showToast("La descripción debe tener al menos 20 caracteres");
@@ -335,7 +335,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.hidden = false;
   window.setTimeout(() => {
-    toast.hidden = false;
+    toast.hidden = true;
   }, 3200);
 }
 

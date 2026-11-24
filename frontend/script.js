@@ -299,7 +299,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.hidden = false;
   window.setTimeout(() => {
-    toast.hidden = false;
+    toast.hidden = true;
   }, 3200);
 }
 

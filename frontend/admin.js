@@ -112,8 +112,8 @@ async function loadReports() {
 
 function updateStats() {
   totalReportsEl.textContent = reports.length;
-  pendingReportsEl.textContent = reports.filter(r => r.status === 'pendiente').length;
-  resolvedReportsEl.textContent = reports.filter(r => r.status === 'atendido').length;
+  pendingReportsEl.textContent = reports.filter(r => r.status === 'pending').length;
+  resolvedReportsEl.textContent = reports.filter(r => r.status === 'resolved').length;
 }
 
 function renderReports() {
@@ -150,8 +150,9 @@ function renderReports() {
       hour: '2-digit',
       minute: '2-digit'
     });
-    const statusClass = report.status === 'atendido' ? 'status-resolved' : 'status-pending';
-    const statusText = report.status === 'atendido' ? 'Atendido' : 'Pendiente';
+    const isResolved = report.status === 'resolved';
+    const statusClass = isResolved ? 'status-resolved' : 'status-pending';
+    const statusText = isResolved ? 'Atendido' : 'Pendiente';
 
     return `
       <div class="report-card">
@@ -171,7 +172,7 @@ function renderReports() {
           <button class="btn btn-primary btn-small" onclick="viewReportDetails('${report.id}')">
             Ver Detalles
           </button>
-          ${report.status === 'pendiente' ? `
+          ${report.status === 'pending' ? `
             <button class="btn btn-ghost btn-small" onclick="markAsResolved('${report.id}')">
               Marcar como Atendido
             </button>
@@ -269,8 +270,8 @@ async function viewReportDetails(reportId) {
 
         <div class="detail-section">
           <h4>Estado</h4>
-          <span class="status-badge ${report.status === 'atendido' ? 'status-resolved' : 'status-pending'}">
-            ${report.status === 'atendido' ? 'Atendido' : 'Pendiente'}
+          <span class="status-badge ${report.status === 'resolved' ? 'status-resolved' : 'status-pending'}">
+            ${report.status === 'resolved' ? 'Atendido' : 'Pendiente'}
           </span>
         </div>
 
@@ -286,7 +287,7 @@ async function markAsResolved(reportId) {
   try {
     const { error } = await supabaseClient
       .from("reports")
-      .update({ status: 'atendido' })
+      .update({ status: 'resolved' })
       .eq("id", reportId);
 
     if (error) throw error;
@@ -307,7 +308,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.hidden = false;
   window.setTimeout(() => {
-    toast.hidden = false;
+    toast.hidden = true;
   }, 3200);
 }
 
