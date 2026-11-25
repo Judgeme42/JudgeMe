@@ -127,7 +127,7 @@ function renderReports() {
     // Búsqueda por texto
     if (query) {
       const queryWords = query.split(/\s+/).filter((w) => w.length > 0);
-      const haystack = `${report.teachers?.full_name || ""} ${report.teachers?.subject || ""} ${report.motive} ${report.description}`.toLowerCase();
+      const haystack = `${report.teachers?.full_name || ""} ${report.motive} ${report.description}`.toLowerCase();
       const matches = queryWords.every((word) => haystack.includes(word));
       if (!matches) return false;
     }
@@ -142,7 +142,6 @@ function renderReports() {
 
   reportsList.innerHTML = filtered.map((report) => {
     const teacherName = report.teachers?.full_name || "Docente desconocido";
-    const subject = report.teachers?.subject || "";
     const date = new Date(report.created_at).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
@@ -159,7 +158,6 @@ function renderReports() {
         <div class="report-header">
           <div>
             <h3>${teacherName}</h3>
-            <p class="report-subject">${subject}</p>
           </div>
           <span class="status-badge ${statusClass}">${statusText}</span>
         </div>
@@ -216,7 +214,6 @@ async function viewReportDetails(reportId) {
     if (evidencesError) throw evidencesError;
 
     const teacherName = report.teachers?.full_name || "Docente desconocido";
-    const subject = report.teachers?.subject || "";
     const date = new Date(report.created_at).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
@@ -230,16 +227,7 @@ async function viewReportDetails(reportId) {
         <div class="evidences-section">
           <h4>Evidencias (${evidences.length})</h4>
           <div class="evidences-grid">
-            ${evidences.map(ev => `
-              <div class="evidence-item">
-                <p class="evidence-name">${ev.file_name}</p>
-                <p class="evidence-type">${ev.file_type}</p>
-                <p class="evidence-size">${(ev.file_size / 1024 / 1024).toFixed(2)} MB</p>
-                <a href="https://ddgsdfuidrjkvuukgzgb.supabase.co/storage/v1/object/public/report-evidences/${ev.file_path}" target="_blank" class="btn btn-ghost btn-small">
-                  Ver Archivo
-                </a>
-              </div>
-            `).join('')}
+            ${evidences.map(ev => evidenceCard(ev)).join('')}
           </div>
         </div>
       `
@@ -250,7 +238,6 @@ async function viewReportDetails(reportId) {
         <div class="detail-section">
           <h4>Docente</h4>
           <p><strong>${teacherName}</strong></p>
-          <p class="detail-subject">${subject}</p>
         </div>
 
         <div class="detail-section">
@@ -281,6 +268,37 @@ async function viewReportDetails(reportId) {
   } catch (error) {
     detailContent.innerHTML = `<p class="error">Error al cargar detalles: ${error.message}</p>`;
   }
+}
+
+function evidenceCard(ev) {
+  const url = `${SUPABASE_URL}/storage/v1/object/public/report-evidences/${ev.file_path}`;
+  const mime = (ev.file_type || "").toLowerCase();
+  const ext = (ev.file_name || "").split(".").pop().toLowerCase();
+
+  let preview = "";
+  if (mime.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"].includes(ext)) {
+    preview = `<a href="${url}" target="_blank" rel="noopener"><img class="evidence-preview-img" src="${url}" alt="${ev.file_name}" loading="lazy" /></a>`;
+  } else if (mime.startsWith("audio/") || ["mp3", "wav", "ogg", "m4a", "webm"].includes(ext)) {
+    preview = `<audio class="evidence-preview-media" controls preload="metadata" src="${url}"></audio>`;
+  } else if (mime.startsWith("video/") || ["mp4", "mov", "avi", "mkv", "webm"].includes(ext)) {
+    preview = `<video class="evidence-preview-media" controls preload="metadata" src="${url}"></video>`;
+  } else if (mime === "application/pdf" || ext === "pdf") {
+    preview = `<iframe class="evidence-preview-pdf" src="${url}" title="${ev.file_name}" loading="lazy"></iframe>`;
+  } else {
+    preview = `<div class="evidence-preview-file">📄<span>${ext.toUpperCase() || "ARCHIVO"}</span></div>`;
+  }
+
+  return `
+    <div class="evidence-item">
+      ${preview}
+      <p class="evidence-name" title="${ev.file_name}">${ev.file_name}</p>
+      <p class="evidence-size">${ev.file_size ? (ev.file_size / 1024 / 1024).toFixed(2) + " MB" : ""}</p>
+      <div class="evidence-actions">
+        <a href="${url}" target="_blank" rel="noopener" class="btn btn-ghost btn-small">Ver</a>
+        <a href="${url}" download="${ev.file_name}" class="btn btn-primary btn-small">Descargar</a>
+      </div>
+    </div>
+  `;
 }
 
 async function markAsResolved(reportId) {
